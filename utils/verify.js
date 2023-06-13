@@ -2,7 +2,6 @@ const { run } = require("hardhat")
 
 // Verifying contract programmatically
 async function verify(contractAddress, args) {
-    console.log("Verifying contract...")
     // Dobbiamo richiamare la funzione run per eseguire il task hardhat di verifica.
     // Run la richiamiamo in un costrutto try-catch
     try {

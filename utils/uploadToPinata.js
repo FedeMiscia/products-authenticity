@@ -13,7 +13,7 @@ async function storeImages(imagesFilePath) {
     const files = fs.readdirSync(fullImagesPath) // Funzione che legge l'intera directory che si trova al path che passiamo e ci restituisce i file contenuti
     let responses = [] // Array nel quale andremo a memorizzare le risposte dal server di Pinata
 
-    console.log("Uploading to Pinata...")
+    console.log("Uploading NFT image to Pinata...")
 
     // Per ogni elemento della variabile files (cioè per ogni immagine) andiamo a creare uno stream di lettura tramite cui vengono prelevati tutti i dati e i bytes dell'immagine.
     // Dopodiché passiamo lo stream del file ad un'opportuna funzione di Pinata

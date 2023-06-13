@@ -4,7 +4,8 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol"; // Import del contratto predisposto da openZeppelin per la creazione di NFTs
 import "base64-sol/base64.sol"; // Import del contratto per effettuare la codifica base64
-import "hardhat/console.sol";
+import "hardhat/console.sol"; // Import necessario altrimenti non veniva letto correttamente il nome del contratto nella rete di test locale
+import "contracts/NftMarketplace.sol";
 
 contract ProductNft is ERC721 {
     // Variables
@@ -43,7 +44,7 @@ contract ProductNft is ERC721 {
 
     // Main Functions
 
-    // Creazione dell'NFT: solo il proprietario del contratto (Brand) può minare un token di cui diventerà il primo proprietario
+    // Creazione dell'NFT: solo il proprietario del contratto (idealmente sarà il Brand) può minare un token di cui diventerà il primo proprietario
     function mintNft() public onlyOwner {
         _safeMint(msg.sender, s_tokenCounter); // Funzione di ERC721
         s_tokenCounter += 1; // Aggiornamento dell'id del token
@@ -56,27 +57,25 @@ contract ProductNft is ERC721 {
         return s_tokenURI;
     }
 
-    function getNftOwner(uint256 tokenId) public view returns (address) {
-        IERC721 nft = IERC721(address(this));
-        address owner = nft.ownerOf(tokenId);
-        return owner;
+    function getContractOwner() public view returns (address) {
+        return s_owner;
     }
 
     // Funzioni per processare un file svg
 
-    /* // Funzione per convertire l'XML di un'immagine PNG nell'URL corrispondente (utilizzando la codifica Base64)
+    /* // Funzione per convertire l'XML di un'immagine SVG nell'URL corrispondente (utilizzando la codifica Base64)
     function svgToImageURI(
         string memory svg
     ) public pure returns (string memory) {
         // Vogliamo ottenere la codifica Base64 dell'SVG passato. Per fare ciò possiamo sfruttare lo smart contract base64.sol (importato) il quale ci mette già a disposizione un encoder
         string memory svgBase64Encoded = Base64.encode(
-            bytes(string(abi.encodePacked(png)))
+            bytes(string(abi.encodePacked(svg)))
         );
 
         // Creiamo l'URL a partire dal prefisso e dalla codifica Base64 che abbiamo ottenuto nell'istruzione precedente
         return
             string(abi.encodePacked(base64EncodedSvgPrefix, svgBase64Encoded));
-        // NOTA: abi.encodePack(...) prende i due parametri e li codifica insieme sotto forma di bytes infatti abi.encodePacked ritorna un bytes object di cui andiamo a fare poi un casting a stringa.
+        // NOTA: abi.encodePacked(...) prende i due parametri e li codifica insieme sotto forma di bytes infatti abi.encodePacked ritorna un bytes object di cui andiamo a fare poi un casting a stringa.
         // abi.encodePacked fa parte dei cosiddetti globally available methods and units di Solidity (altri esempi sono msg.sender, msg.value)
         // In sostanza ci permette di concatenare delle stringhe ma fa anche altre cose in più. In particolare, encodePacked fa una sorta di compressione e permette di ottenere bytes objects più piccoli.
 

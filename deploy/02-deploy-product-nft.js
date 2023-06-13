@@ -16,6 +16,7 @@ const imagesLocation = "./images/"
 let metadataTemplate = {
     name: "Diamond",
     description: "An authentic luxury product",
+    creator: "",
     image: "",
     attributes: [
         {
@@ -27,7 +28,7 @@ let metadataTemplate = {
     ],
 }
 
-let tokenURI = "ipfs://QmW3jKFwvnDwpN5BFQFif2vUWMARkfn4hAGV9qTNeBDmLY"
+let tokenURI = "ipfs://QmTAF9N4c8V1sDN4jMYjFu5rV8nAGGvrX8rQJfYHzmP2Tu"
 
 module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deploy, log } = deployments
@@ -37,7 +38,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
     // Get the IPFS hashes of our images
     if (process.env.UPLOAD_TO_PINATA == "true") {
-        tokenURI = await handleTokenUris() // Funzione che farà l'upload su Pinata dei file (immagini e metadati) e ci restituirà gli URI
+        tokenURI = await handleTokenUris(deployer) // Funzione che farà l'upload su Pinata dei file (immagini e metadati) e ci restituirà gli URI
     }
 
     // Dobbiamo ricavare i parametri da passare al costruttore dello smart contract
@@ -48,6 +49,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     }) */
 
     //let arguments = [image]
+
     let arguments = [tokenURI]
 
     console.log("------------------------")
@@ -57,27 +59,33 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         args: arguments,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
+    if (process.env.UPLOAD_TO_PINATA == "false") {
+        console.log(`NFT token URI: ${tokenURI}`)
+    }
 
     // Verifica del contratto su Etherscan (se stiamo deployando su una rete reale)
     if (
         !developmentChains.includes(network.name) &&
         process.env.ETHERSCAN_API_KEY
     ) {
-        log("Verifyng contract ...")
+        log("Verifica del contratto ...")
         await verify(productNft.address, arguments)
     }
 }
 
 // Funzione per costruire il token URI
-async function handleTokenUris() {
+async function handleTokenUris(nftCreator) {
     let tokenUris = []
     const { responses: imageUploadResponses, files } = await storeImages(
         imagesLocation
     ) // Richiamiamo la funzione storeImages definita nello script uploadToPinata e passiamo il path al quale troviamo le immagini. La funzione ritorna una lista di hash dei file (responses) ottenuti dall'upload su Pinata e i file stessi
 
-    // Facciamo un loop sulla lista dei responses e per ognuno andiamo a creare i metadati modificando il template definito sopra e a fare l'upload dei metadati su Pinata
+    // Facciamo un loop sulla lista dei responses: per ognuno andiamo a creare i metadati modificando il template definito sopra dopodiché si prosegue con l'upload dei metadati su Pinata
     for (imageUploadResponseIndex in imageUploadResponses) {
         let tokenUriMetadata = { ...metadataTemplate } // Zucchero sintattico: metadataTemplate viene messa nella variabile tokenUriMetadata. Da quest'ultima, dunque, potremo fare accesso ai vari campi.
+
+        // Andiamo a popolare il campo creator all'interno dei metadati
+        tokenUriMetadata.creator = `${nftCreator}`
 
         // Creazione dell'URL per l'immagine
         tokenUriMetadata.image = `ipfs://${imageUploadResponses[imageUploadResponseIndex].IpfsHash}` // Il campo image dei metadati viene popolato con: estensione ipfs + hash ottenuto dall'upload dell'immagine su Pinata. IpfsHash è il risultato della pinFileToIPFS nel quale è contenuto l'hash in questione
@@ -88,12 +96,12 @@ async function handleTokenUris() {
             tokenUriMetadata
         )
 
-        tokenUris = `ipfs://${metadataUploadResponse.IpfsHash}` // Valorizziamo la variabile tokenURI con l'hash IPFS che punta ai metadati del token in questione. I metadati a loro volta puntano all'immagine del token.
+        tokenUris.push(`ipfs://${metadataUploadResponse.IpfsHash}`) // Aggiungiamo nel vettore tokenUris con l'hash IPFS che punta ai metadati del token in questione. I metadati a loro volta puntano all'immagine del token.
     }
 
     console.log("Token URI Uploaded! It is:")
-    console.log(tokenUris)
-    return tokenUris
+    console.log(tokenUris[0])
+    return tokenUris[0]
 }
 
 module.exports.tags = ["all", "productnft", "main"]

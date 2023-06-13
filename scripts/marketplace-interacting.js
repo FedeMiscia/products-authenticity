@@ -2,12 +2,12 @@ const { ethers, network, deployments, getNamedAccounts } = require("hardhat")
 
 async function main() {
     // const { deployer, user } = await getNamedAccounts()
-    const accounts = await ethers.getSigners()
+    const accounts = await ethers.getSigners() // Meglio ricavare gli account tramite getSigners() altrimenti dà errore
     const deployer = accounts[0]
     const user = accounts[1]
     let marketplaceContract, productNftContract, marketplace, productNft
-    const TOKEN_ID = 0
-    const PRICE = ethers.utils.parseEther("0.1")
+    const TOKEN_ID = 0 // token id dell'NFT da manipolare in questo script
+    const PRICE = ethers.utils.parseEther("0.001")
 
     // Recupero degli smart contract e connessione con il deployer
 
@@ -17,25 +17,28 @@ async function main() {
     productNftContract = await ethers.getContract("ProductNft")
     productNft = productNftContract.connect(deployer)
 
+    console.log("--------------------------")
     console.log(`Marketplace has address: ${marketplace.address.toString()}`)
 
     // Creazione dell'NFT si assume fatta da un altro script. Il Deployer è l'attuale proprietario
-    // const productNftMintTx = await productNft.mintNft()
-    // await productNftMintTx.wait(1)
-    console.log(`Product NFT has tokenURI: ${await productNft.getTokenUri()}`)
-    console.log(`Nft has address: ${productNft.address.toString()}`)
-    await productNft.approve(marketplaceContract.address, TOKEN_ID)
 
-    const owner1 = await productNft.ownerOf(TOKEN_ID)
-    console.log("-------------------------------")
-    console.log(`Primo proprietario: ${owner1.toString()}`)
+    console.log("--------------------------")
+    console.log("Approvazione NFT...")
+    const approvalTx = await productNft.approve(
+        marketplaceContract.address,
+        TOKEN_ID
+    ) // Bisogna fornire l'approvazione al marketplace per spostare l'NFT
+    await approvalTx.wait(1)
 
     // Deployer mette in vendita il proprio NFT
 
     console.log("Pubblicazione annuncio vendita...")
-    await marketplace.listItem(productNft.address, TOKEN_ID, PRICE)
+    const tx = await marketplace.listItem(productNft.address, TOKEN_ID, PRICE)
+    await tx.wait(1)
     const listing = await marketplace.getListing(productNft.address, TOKEN_ID)
     console.log("Dettagli annuncio:")
+    console.log(`NFT address: ${productNft.address}`)
+    console.log(`NFT token ID: ${TOKEN_ID}`)
     console.log(`Prezzo: ${listing.price.toString()}`)
     console.log(`Venditore: ${listing.seller.toString()}`)
 
@@ -47,6 +50,7 @@ async function main() {
         value: PRICE,
     })
     await buyItemTx.wait(1)
+    console.log("Acquisto avvenuto con successo")
     productNft = productNftContract.connect(user)
     const owner2 = await productNft.ownerOf(TOKEN_ID)
     console.log(`Nuovo proprietario: ${owner2.toString()}`)

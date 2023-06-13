@@ -4,7 +4,7 @@ require("@nomiclabs/hardhat-etherscan") // Plugin per interagire con etherscan e
 //require("./tasks/block-number.js") // Import dello script realizzato per definire un nuovo task block-number
 //require("./tasks/accounts") // Import dello script che definsice il task per stamapre gli account della rete locale hardhat
 require("hardhat-gas-reporter") // Import dell'estensione gas reporter utile per i test
-require("solidity-coverage") // Import richiesto per utilizzare il tool solidity-coverage (copertura del codice di un contratto da parte dei test)
+//require("solidity-coverage") // Import richiesto per utilizzare il tool solidity-coverage (copertura del codice di un contratto da parte dei test)
 require("hardhat-deploy") // Import del plugin per facilitare il tracking dei deploy e  il testing
 // require("hardhat-contract-sizer")
 // require("@nomiclabs/hardhat-waffle")
@@ -69,11 +69,12 @@ module.exports = {
         deployer: {
             // Un primo account lo chiamiamo deployer perché lo vogliamo destinare al deploy del contratto
             default: 0, // Stabiliamo che, utilizzando la rete di default hardhat, l'account deployer sia l'account 0
-            // 31337: 0 --> In questo modo diciamo che nella rete con Id 31337 (localhost) l'account deployer sarà l'account 0. Per ogni rete possiamo stabilire l'account che sarà il deployer
+            31337: 0, // In questo modo diciamo che nella rete con Id 31337 (localhost) l'account deployer sarà l'account 0. Per ogni rete possiamo stabilire l'account che sarà il deployer
             1337: 0,
         },
         user: {
             default: 1,
+            31337: 1,
         },
         user2: {
             default: 2,

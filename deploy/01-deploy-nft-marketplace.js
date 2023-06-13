@@ -7,7 +7,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deployer } = await getNamedAccounts()
 
     log("------------------------")
-    let args = [] // Argomenti per il costruttore che in realtà non c'è nel contratto che vogliamo deployare, quindi lasciato vuoto
+    let args = [120] // Argomenti per il costruttore: dobbiamo definire il tempo di recesso di un prodotto
     const nftMarketplace = await deploy("NftMarketplace", {
         from: deployer,
         args: args,
@@ -20,7 +20,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         !developmentChains.includes(network.name) &&
         process.env.ETHERSCAN_API_KEY
     ) {
-        log("Verifyng contract ...")
+        log("Verifica del contratto ...")
         await verify(nftMarketplace.address, args)
     }
 
