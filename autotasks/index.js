@@ -39,11 +39,22 @@ async function handler(event) {
     console.log("---------------------")
 
     await delay(requiredTimeInSeconds * 1000)
-    console.log("Attesa finita")
 
-    const tx = await marketplace.transferTokenAfterTime(nftAddress, tokenId)
-    await tx.wait(1)
-    return { matches }
+    const result = await marketplace.getTransaction(nftAddress, tokenId)
+    const seller = result[0]
+    console.log(seller)
+    if (seller == "0x0000000000000000000000000000000000000000") {
+        console.log("Rilevata restituzione: nessuna azione da intraprendere")
+        return { matches }
+    } else {
+        console.log(
+            "Tempo utile di restituzione terminato: trasferimento automatico token"
+        )
+
+        const tx = await marketplace.transferTokenAfterTime(nftAddress, tokenId)
+        await tx.wait(1)
+        return { matches }
+    }
 }
 
 module.exports = {

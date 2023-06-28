@@ -10,6 +10,7 @@ const {
     storeTokenUriMetadata,
 } = require("../utils/uploadToPinata.js")
 require("dotenv").config()
+const { networks } = require("../hardhat.config.js")
 
 const imagesLocation = "./images/"
 
@@ -28,13 +29,17 @@ let metadataTemplate = {
     ],
 }
 
-let tokenURI = "ipfs://QmTAF9N4c8V1sDN4jMYjFu5rV8nAGGvrX8rQJfYHzmP2Tu"
+// Quando tokenURI è una stringa vuota allora bisogna abilitare l'upload su Pinata dalla variabile in .env
+// Una volta fatto l'upload su Pinata dell'URI allora lo incolliamo qui e disabilitiamo l'upload per le volte successive
+let tokenURI = ""
 
-module.exports = async function ({ getNamedAccounts, deployments }) {
+// let creator
+
+module.exports = async function ({ getDeployer, deployments }) {
     const { deploy, log } = deployments
-    const { deployer } = await getNamedAccounts()
-
     const chainId = network.config.chainId // Ricaviamo l'id della rete attualmente in uso qunado viene lanciato lo script
+
+    const { deployer } = await getNamedAccounts()
 
     // Get the IPFS hashes of our images
     if (process.env.UPLOAD_TO_PINATA == "true") {

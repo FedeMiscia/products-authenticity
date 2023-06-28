@@ -71,6 +71,7 @@ module.exports = {
             default: 0, // Stabiliamo che, utilizzando la rete di default hardhat, l'account deployer sia l'account 0
             31337: 0, // In questo modo diciamo che nella rete con Id 31337 (localhost) l'account deployer sarà l'account 0. Per ogni rete possiamo stabilire l'account che sarà il deployer
             1337: 0,
+            11155111: 0,
         },
         user: {
             default: 1,
